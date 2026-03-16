@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimWallet Admin</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0b0b0b; font-family: 'Inter', sans-serif; color: white; padding: 24px; }
+    h2 { color: #ab9ff2; margin-bottom: 20px; font-size: 20px; }
+    h3 { font-size: 14px; color: #9b9bab; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 12px; }
+    .card { background: #141414; border-radius: 16px; padding: 20px; margin-bottom: 16px; border: 1px solid #222; }
+    label { color: #9b9bab; font-size: 12px; display: block; margin-bottom: 6px; margin-top: 12px; }
+    input, select {
+      width: 100%; padding: 11px 14px; background: #1e1e1e;
+      border: 1px solid #333; border-radius: 10px; color: white;
+      font-size: 14px; outline: none;
+    }
+    input:focus, select:focus { border-color: #ab9ff2; }
+    .btn { width: 100%; padding: 13px; background: #ab9ff2; color: #000; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 14px; }
+    .btn:hover { opacity: 0.9; }
+    .btn.secondary { background: #222; color: #fff; margin-top: 8px; }
+    .msg { font-size: 13px; margin-top: 10px; }
+    .error { color: #e5484d; }
+    .success { color: #30a46c; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .tab { padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; background: #1e1e1e; color: #9b9bab; border: none; }
+    .tab.active { background: #ab9ff2; color: #000; }
+    .key-table { width: 100%; border-collapse: collapse; }
+    .key-table th { color: #9b9bab; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; text-align: left; padding: 8px 10px; border-bottom: 1px solid #222; }
+    .key-table td { padding: 10px; font-size: 13px; border-bottom: 1px solid #1a1a1a; }
+    .key-table tr:hover td { background: #161616; }
+    .badge { padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+    .badge.active { background: rgba(48,164,108,0.15); color: #30a46c; }
+    .badge.expired { background: rgba(229,72,77,0.15); color: #e5484d; }
+    .badge.lifetime { background: rgba(171,159,242,0.15); color: #ab9ff2; }
+    .copy-btn { background: #222; border: none; color: #ab9ff2; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 11px; }
+    .key-text { color: #ab9ff2; font-weight: 700; font-family: monospace; letter-spacing: 1px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stat-box { background: #141414; border: 1px solid #222; border-radius: 12px; padding: 14px; text-align: center; }
+    .stat-num { font-size: 28px; font-weight: 700; color: #fff; }
+    .stat-label { font-size: 11px; color: #9b9bab; margin-top: 2px; }
+    .search-input { padding: 10px 14px; background: #1e1e1e; border: 1px solid #333; border-radius: 10px; color: white; font-size: 13px; outline: none; width: 100%; margin-bottom: 12px; }
+    .loading { color: #9b9bab; font-size: 13px; text-align: center; padding: 20px; }
+    .user-info { color: #9b9bab; font-size: 12px; }
+    select option { background: #1e1e1e; }
+    .refresh-btn { background: none; border: 1px solid #333; color: #ab9ff2; padding: 6px 14px; border-radius: 8px; font-size: 12px; cursor: pointer; float: right; }
+  </style>
+</head>
+<body>
+  <h2>🛡️ SimWallet Admin</h2>
+
+  <!-- Stats -->
+  <div class="stat-grid">
+    <div class="stat-box">
+      <div class="stat-num" id="stat-total">—</div>
+      <div class="stat-label">Total Keys</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" style="color:#30a46c" id="stat-active">—</div>
+      <div class="stat-label">Active</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-num" style="color:#e5484d" id="stat-expired">—</div>
+      <div class="stat-label">Expired</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('generate')">Generate Key</button>
+    <button class="tab" onclick="switchTab('keys')">All Keys</button>
+  </div>
+
+  <!-- Generate Tab -->
+  <div id="tab-generate">
+    <div class="card">
+      <label>Admin Password</label>
+      <input type="password" id="secret" placeholder="Enter admin password" />
+      <label>License Plan</label>
+      <select id="plan">
+        <option value="7">7 Days</option>
+        <option value="15">15 Days</option>
+        <option value="30">30 Days</option>
+        <option value="90">90 Days</option>
+        <option value="lifetime">Lifetime ♾️</option>
+      </select>
+      <button class="btn" onclick="generate()">Generate Key</button>
+      <p class="msg" id="msg"></p>
+    </div>
+
+    <div class="card">
+      <h3>Recently Generated</h3>
+      <div id="keyList"><p style="color:#555;font-size:13px;">No keys generated yet</p></div>
+    </div>
+  </div>
+
+  <!-- Keys Tab -->
+  <div id="tab-keys" style="display:none;">
+    <div class="card">
+      <h3>All Keys <button class="refresh-btn" onclick="loadAllKeys()">↻ Refresh</button></h3>
+      <input class="search-input" placeholder="Search key or username..." oninput="filterKeys(this.value)" id="keySearch" />
+      <div id="allKeysContainer"><p class="loading">Enter admin password and click Refresh</p></div>
+    </div>
+  </div>
+
+  <script>
+    let adminSecret = ""
+    let allKeysData = []
+    const localKeys = JSON.parse(localStorage.getItem("adminKeys") || "[]")
+    renderLocalKeys()
+
+    function switchTab(tab) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"))
+      document.getElementById("tab-generate").style.display = tab === "generate" ? "block" : "none"
+      document.getElementById("tab-keys").style.display = tab === "keys" ? "block" : "none"
+      event.target.classList.add("active")
+      if (tab === "keys") loadAllKeys()
+    }
+
+    function renderLocalKeys() {
+      const list = document.getElementById("keyList")
+      if (localKeys.length === 0) {
+        list.innerHTML = '<p style="color:#555;font-size:13px;">No keys generated yet</p>'
+        return
+      }
+      list.innerHTML = localKeys.slice(0, 10).map(k => `
+        <div style="background:#1a1a1a;border-radius:10px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div class="key-text">${k.key}</div>
+            <div style="color:#9b9bab;font-size:12px;margin-top:3px;">${k.plan} • ${k.date}</div>
+          </div>
+          <button class="copy-btn" onclick="copyKey('${k.key}')">Copy</button>
+        </div>
+      `).join("")
+    }
+
+    async function generate() {
+      const secret = document.getElementById("secret").value
+      const plan = document.getElementById("plan").value
+      const days = plan === "lifetime" ? 99999 : parseInt(plan)
+      const msg = document.getElementById("msg")
+      if (!secret) { msg.className = "msg error"; msg.innerText = "Enter admin password first"; return }
+      adminSecret = secret
+      try {
+        const res = await fetch("http://localhost:3000/admin/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret, plan: plan === "lifetime" ? "lifetime" : "days", days })
+        })
+        const data = await res.json()
+        if (data.success) {
+          msg.className = "msg success"
+          msg.innerText = "✅ Key: " + data.key
+          localKeys.unshift({ key: data.key, plan: plan === "lifetime" ? "Lifetime ♾️" : plan + " Days", date: new Date().toLocaleDateString() })
+          localStorage.setItem("adminKeys", JSON.stringify(localKeys))
+          renderLocalKeys()
+          loadStats()
+        } else {
+          msg.className = "msg error"
+          msg.innerText = "❌ " + data.message
+        }
+      } catch(e) {
+        msg.className = "msg error"
+        msg.innerText = "Cannot connect to server"
+      }
+    }
+
+    async function loadAllKeys() {
+      const secret = document.getElementById("secret").value || adminSecret
+      if (!secret) {
+        document.getElementById("allKeysContainer").innerHTML = '<p class="loading">Enter admin password in the Generate tab first</p>'
+        return
+      }
+      adminSecret = secret
+      document.getElementById("allKeysContainer").innerHTML = '<p class="loading">Loading...</p>'
+      try {
+        const res = await fetch("http://localhost:3000/admin/keys", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret })
+        })
+        const data = await res.json()
+        if (!data.success) {
+          document.getElementById("allKeysContainer").innerHTML = '<p class="loading" style="color:#e5484d;">Wrong password</p>'
+          return
+        }
+        allKeysData = data.keys
+        renderKeysTable(allKeysData)
+        updateStats(allKeysData)
+      } catch(e) {
+        document.getElementById("allKeysContainer").innerHTML = '<p class="loading" style="color:#e5484d;">Cannot connect to server</p>'
+      }
+    }
+
+    function renderKeysTable(keys) {
+      if (keys.length === 0) {
+        document.getElementById("allKeysContainer").innerHTML = '<p class="loading">No keys found</p>'
+        return
+      }
+      document.getElementById("allKeysContainer").innerHTML = `
+        <table class="key-table">
+          <thead>
+            <tr>
+              <th>Key</th>
+              <th>Plan</th>
+              <th>User</th>
+              <th>Expires</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${keys.map(k => `
+              <tr>
+                <td><span class="key-text">${k.key}</span></td>
+                <td>${k.plan === "lifetime" ? "Lifetime ♾️" : k.days + "d"}</td>
+                <td><span class="user-info">${k.username}</span></td>
+                <td style="color:#9b9bab;font-size:12px;">${k.plan === "lifetime" ? "Never" : (k.expiryDate ? new Date(k.expiryDate).toLocaleDateString() : "—")}</td>
+                <td><span class="badge ${k.plan === 'lifetime' ? 'lifetime' : k.status}">${k.plan === 'lifetime' ? '♾️ Lifetime' : k.status === 'active' ? '✓ Active' : '✗ Expired'}</span></td>
+                <td style="display:flex;gap:6px;">
+  <button class="copy-btn" onclick="copyKey('${k.key}')">Copy</button>
+  <button class="copy-btn" style="color:#e5484d;" onclick="deleteKey('${k.key}')">Delete</button>
+</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `
+    }
+
+    function filterKeys(val) {
+      const filtered = allKeysData.filter(k =>
+        k.key.toLowerCase().includes(val.toLowerCase()) ||
+        (k.username || "").toLowerCase().includes(val.toLowerCase())
+      )
+      renderKeysTable(filtered)
+    }
+
+    function updateStats(keys) {
+      const active = keys.filter(k => k.status === "active" || k.plan === "lifetime").length
+      const expired = keys.filter(k => k.status === "expired").length
+      document.getElementById("stat-total").innerText = keys.length
+      document.getElementById("stat-active").innerText = active
+      document.getElementById("stat-expired").innerText = expired
+    }
+
+    async function loadStats() {
+      const secret = document.getElementById("secret").value || adminSecret
+      if (!secret) return
+      try {
+        const res = await fetch("http://localhost:3000/admin/keys", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret })
+        })
+        const data = await res.json()
+        if (data.success) updateStats(data.keys)
+      } catch(e) {}
+    }
+
+    function copyKey(key) {
+      navigator.clipboard.writeText(key)
+      alert("Copied: " + key)
+    }
+function copyKey(key) {
+      navigator.clipboard.writeText(key)
+      alert("Copied: " + key)
+    }
+
+    async function deleteKey(key) {
+      if (!confirm("Delete key: " + key + "?\nThis will also delete the user's data!")) return
+      const secret = document.getElementById("secret").value || adminSecret
+      try {
+        const res = await fetch("http://localhost:3000/admin/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret, key })
+        })
+        const data = await res.json()
+        if (data.success) {
+          allKeysData = allKeysData.filter(k => k.key !== key)
+          renderKeysTable(allKeysData)
+          updateStats(allKeysData)
+        }
+      } catch(e) { alert("Error deleting key") }
+    }
+    loadStats()
+  </script>
+</body>
+</html>

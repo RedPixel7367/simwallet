@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimWallet</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0d0d14;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* BACKGROUND GLOW */
+    .bg-glow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .glow-left {
+      position: absolute;
+      top: -20%;
+      left: -20%;
+      width: 60%;
+      height: 70%;
+      background: radial-gradient(ellipse, rgba(88,28,235,0.35) 0%, transparent 70%);
+    }
+    .glow-right {
+      position: absolute;
+      bottom: -20%;
+      right: -10%;
+      width: 50%;
+      height: 60%;
+      background: radial-gradient(ellipse, rgba(88,28,235,0.2) 0%, transparent 70%);
+    }
+
+    /* NAVBAR */
+    nav {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 48px;
+    }
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .nav-logo-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .nav-logo-text {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+    }
+    .nav-logo-text span {
+      color: #a78bfa;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .nav-links a {
+      color: #9b9bab;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: white; }
+    .nav-btn {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .nav-btn:hover { opacity: 0.9; }
+
+    /* MAIN CONTENT */
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+      padding: 20px;
+    }
+
+    /* LOGIN CARD */
+    .card {
+      background: #13131f;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+
+    .card-logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 26px;
+      font-weight: 800;
+      color: white;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .card-subtitle {
+      font-size: 14px;
+      color: #9b9bab;
+      text-align: center;
+      line-height: 1.6;
+      margin-bottom: 32px;
+      max-width: 300px;
+    }
+
+    .input-group {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .input-label {
+      display: block;
+      color: #9b9bab;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 14px 16px;
+      background: #1a1a2e;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+      letter-spacing: 1px;
+    }
+    .input-field::placeholder {
+      color: #3a3a5c;
+      letter-spacing: 2px;
+    }
+    .input-field:focus {
+      border-color: #7c3aed;
+    }
+
+    .activate-btn {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: opacity 0.15s, transform 0.15s;
+      margin-bottom: 20px;
+      font-family: 'Inter', sans-serif;
+    }
+    .activate-btn:hover { opacity: 0.92; }
+    .activate-btn:active { transform: scale(0.98); }
+
+    .back-link {
+      color: #9b9bab;
+      font-size: 13px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: white; }
+
+    .error-msg {
+      color: #e5484d;
+      font-size: 13px;
+      margin-bottom: 12px;
+      text-align: center;
+      width: 100%;
+    }
+
+    .loading {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="bg-glow">
+    <div class="glow-left"></div>
+    <div class="glow-right"></div>
+  </div>
+
+  <div class="main">
+    <div class="card">
+      <div class="card-logo">👻</div>
+      <div class="card-title">Activate Your License</div>
+      <div class="card-subtitle">Enter the license key you received after purchase to get started.</div>
+
+      <div class="input-group">
+        <label class="input-label">License Key</label>
+        <input class="input-field" id="key" placeholder="XXXX-XXXX-XXXX-XXXX" />
+      </div>
+
+      <p class="error-msg" id="err"></p>
+
+      <button class="activate-btn" onclick="login()">
+        <span id="btn-text">Activate License</span>
+        <span id="btn-arrow">→</span>
+        <div class="loading" id="loading"></div>
+      </button>
+
+      <a href="#" class="back-link">← Back to home</a>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    const input = document.getElementById("key")
+    input.addEventListener("keydown", e => {
+      if (e.key === "Enter") login()
+    })
+
+    const originalLogin = login
+    window.login = async function() {
+      const btn = document.querySelector(".activate-btn")
+      const btnText = document.getElementById("btn-text")
+      const btnArrow = document.getElementById("btn-arrow")
+      const loading = document.getElementById("loading")
+      btnText.innerText = "Activating..."
+      btnArrow.style.display = "none"
+      loading.style.display = "block"
+      btn.style.opacity = "0.8"
+      await originalLogin()
+      btnText.innerText = "Activate License"
+      btnArrow.style.display = "inline"
+      loading.style.display = "none"
+      btn.style.opacity = "1"
+    }
+  </script>
+</body>
+</html>

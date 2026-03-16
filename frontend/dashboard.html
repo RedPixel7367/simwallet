@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>Phantom Wallet</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');  
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html,body{background:#111;font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;display:flex;justify-content:center;min-height:100vh;width:100%;}
+    .root{width:390px;min-height:100vh;background:#111;display:flex;flex-direction:column;}
+    .header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px;}
+    .header-left{display:flex;align-items:center;gap:8px;}
+    .star-btn{background:none;border:none;cursor:pointer;font-size:22px;display:flex;align-items:center;}
+    .wallet-info{display:flex;flex-direction:column;}
+    .wallet-handle{color:#9b9bab;font-size:12px;}
+    .wallet-name{color:#fff;font-size:16px;font-weight:700;display:flex;align-items:center;gap:4px;}
+    .header-right{display:flex;gap:4px;}
+    .icon-btn{background:none;border:none;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#9b9bab;}
+    .icon-btn:hover{background:rgba(255,255,255,0.08);}
+    .balance-section{padding:12px 20px 16px;}
+    .balance-amount{font-size:42px;font-weight:700;color:#fff;line-height:1.1;}
+    .balance-change-row{display:flex;align-items:center;gap:6px;margin-top:4px;}
+    .change-positive{color:#30a46c;font-size:13px;font-weight:500;}
+    .change-negative{color:#e5484d;font-size:13px;font-weight:500;}
+    .change-badge{padding:2px 8px;border-radius:100px;font-size:12px;font-weight:500;}
+    .badge-positive{background:rgba(48,164,108,0.15);color:#30a46c;}
+    .badge-negative{background:rgba(229,72,77,0.15);color:#e5484d;}
+    .actions{display:flex;gap:0;padding:0 16px 20px;justify-content:space-around;}
+    .act-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;background:none;border:none;width:25%;}
+    .act-icon{width:72px;height:72px;background:#1e1e1e;border-radius:20px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+    .act-btn:active .act-icon{transform:scale(0.92);background:#3a3a3a;}
+    .act-icon svg path{stroke:#ab9ff2 !important;}
+.act-icon svg path[fill="#fff"]{fill:#ab9ff2 !important;stroke:none;}
+    .act-label{color:#fff;font-size:12px;font-weight:500;}
+    .cash-box{margin:0 20px 20px;background:#1a1a1a;border-radius:18px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;}
+    .cash-title{color:#9b9bab;font-size:12px;margin-bottom:3px;}
+    .cash-amount{color:#fff;font-size:20px;font-weight:700;}
+    .add-cash-btn{background:#ab9ff2;color:#000;border:none;padding:10px 20px;border-radius:100px;font-size:13px;font-weight:700;cursor:pointer;}
+    .tokens-header{display:flex;align-items:center;justify-content:space-between;padding:4px 20px 10px;}
+    .tokens-title{color:#fff;font-size:17px;font-weight:700;display:flex;align-items:center;gap:4px;}
+    .token-list{flex:1;overflow-y:auto;padding:0 12px 20px;}
+    .token-list::-webkit-scrollbar{width:0;}
+    .skeleton-row{display:flex;align-items:center;padding:12px 8px;gap:12px;}
+    .sk-circle{width:44px;height:44px;border-radius:50%;background:#2a2a2a;flex-shrink:0;animation:shimmer 1.5s infinite;}
+    .sk-lines{flex:1;display:flex;flex-direction:column;gap:8px;}
+    .sk-line{height:12px;border-radius:6px;background:#2a2a2a;animation:shimmer 1.5s infinite;}
+    @keyframes shimmer{0%{opacity:0.4}50%{opacity:0.8}100%{opacity:0.4}}
+    .token-row{display:flex;align-items:center;padding:16px 16px;cursor:pointer;width:100%;background:#1a1a1a;border:none;text-align:left;border-radius:18px;transition:background 0.1s;margin-bottom:10px;}
+.token-row:active{background:#2e2e2e;}
+    .token-row:active{background:rgba(255,255,255,0.05);}
+    .tok-logo{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;margin-right:14px;}
+    .tok-logo img{width:44px;height:44px;border-radius:50%;object-fit:cover;}
+    .tok-info{flex:1;min-width:0;}
+    .tok-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+    .tok-name-row{display:flex;align-items:center;gap:4px;}
+  .tok-name{color:#fff;font-size:15px;font-weight:600;letter-spacing:-0.2px;}
+.tok-usd{color:#fff;font-size:15px;font-weight:600;letter-spacing:-0.3px;}
+    .tok-bottom{display:flex;justify-content:space-between;align-items:center;}
+    .tok-amount{color:#9b9bab;font-size:13px;letter-spacing:-0.1px;}
+    .tok-change-pos{color:#30a46c;font-size:13px;}
+    .tok-change-neg{color:#e5484d;font-size:13px;}
+    .bottom-nav{display:flex;justify-content:space-around;padding:10px 0 28px;border-top:1px solid #1e1e1e;background:#111;margin-top:auto;}
+    .nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;background:none;border:none;padding:4px 16px;transition:transform 0.15s;}
+    .nav-item:active{transform:scale(0.9);}
+    .nav-item.active svg{color:#ab9ff2;}
+    .nav-item svg{color:#555;}
+    .overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99;opacity:0;transition:opacity 0.25s;}
+    .overlay.visible{opacity:1;}
+    .sheet{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:390px;background:#161616;border-radius:24px 24px 0 0;z-index:100;max-height:90vh;overflow-y:auto;padding:20px 16px 40px;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);}
+    .sheet.open{transform:translateX(-50%) translateY(0);}
+    .sheet::-webkit-scrollbar{width:0;}
+    .sheet-handle{width:36px;height:4px;background:#3a3a3a;border-radius:2px;margin:0 auto 20px;}
+    .sheet-title{color:#fff;font-size:17px;font-weight:600;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;}
+    .sheet-x{background:none;border:none;color:#9b9bab;cursor:pointer;font-size:22px;line-height:1;padding:0;}
+    .sheet-label{color:#ab9ff2;font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:8px;margin-top:16px;}
+    .sheet-input{width:100%;padding:12px 14px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:12px;color:#fff;font-size:15px;margin-bottom:8px;outline:none;transition:border-color 0.15s;}
+    .sheet-input:focus{border-color:#ab9ff2;}
+    .sheet-select{width:100%;padding:12px 14px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:12px;color:#fff;font-size:15px;margin-bottom:8px;outline:none;}
+    .sheet-btn{width:100%;padding:14px;background:#ab9ff2;color:#000;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;transition:all 0.15s;}
+    .sheet-btn:active{transform:scale(0.98);}
+    .sheet-btn.secondary{background:#2a2a2a;color:#fff;}
+    .sheet-btn.red{background:#e5484d;color:#fff;}
+    .bal-hint{color:#9b9bab;font-size:12px;margin-bottom:12px;}
+    .settings-section-title{color:#ab9ff2;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px;}
+    .settings-row{display:flex;align-items:center;gap:12px;background:#2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+    .settings-row-label{color:#9b9bab;font-size:13px;width:70px;flex-shrink:0;}
+    .settings-row-input{flex:1;background:none;border:none;color:#fff;font-size:14px;outline:none;}
+    .toggle-wrap{cursor:pointer;flex-shrink:0;}
+    .toggle-track{width:44px;height:24px;background:#3a3a3a;border-radius:12px;position:relative;transition:background 0.2s;}
+    .toggle-track.on{background:#ab9ff2;}
+    .toggle-thumb{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left 0.2s;}
+    .toggle-track.on .toggle-thumb{left:22px;}
+    .auto-balance-row{display:flex;align-items:center;gap:8px;background:#2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+    .auto-balance-row label{color:#9b9bab;font-size:13px;flex-shrink:0;}
+    .auto-balance-row input{flex:1;background:none;border:none;color:#fff;font-size:14px;outline:none;min-width:0;}
+    .progress-row{display:flex;align-items:center;justify-content:space-between;background:#2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+    .progress-label{color:#9b9bab;font-size:13px;}
+    .progress-val{color:#fff;font-size:13px;font-weight:600;}
+    .refresh-btn{background:#1a1a1a;border:1px solid #3a3a3a;color:#ab9ff2;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;}
+    .reset-btn{width:100%;padding:12px;background:none;border:none;color:#e5484d;font-size:14px;font-weight:600;cursor:pointer;margin-bottom:8px;text-align:center;}
+    .tok-setting-row{background:#2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:8px;}
+    .tok-setting-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .tok-setting-logo{width:28px;height:28px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .tok-setting-logo img{width:28px;height:28px;object-fit:cover;}
+    .tok-setting-name{color:#fff;font-size:14px;font-weight:600;}
+    .tok-setting-input-row{display:flex;align-items:center;gap:8px;}
+    .tok-setting-input-label{color:#9b9bab;font-size:12px;width:55px;flex-shrink:0;}
+    .tok-setting-input{flex:1;background:#1a1a1a;border:none;border-radius:8px;padding:8px 12px;color:#fff;font-size:14px;outline:none;}
+    .search-wrap{position:relative;margin-bottom:8px;}
+    .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#666;pointer-events:none;}
+    .token-search-list{max-height:280px;overflow-y:auto;}
+    .token-search-item{display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:12px;cursor:pointer;transition:background 0.1s;}
+    .token-search-item:hover,.token-search-item.selected{background:#2a2a2a;}
+    .token-search-logo{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;overflow:hidden;flex-shrink:0;}
+    .token-search-logo img{width:36px;height:36px;border-radius:50%;object-fit:cover;}
+    .token-search-name{color:#fff;font-size:14px;font-weight:600;}
+    .token-search-bal{color:#9b9bab;font-size:12px;}
+    .token-search-usd{color:#fff;font-size:13px;font-weight:500;}
+    .qr-wrap{display:flex;flex-direction:column;align-items:center;padding:10px 0 20px;}
+    .qr-box{background:#fff;padding:16px;border-radius:16px;margin-bottom:16px;}
+    .qr-addr{color:#fff;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+    .copy-btn-small{background:none;border:none;color:#ab9ff2;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:4px;}
+    .qr-note{color:#9b9bab;font-size:12px;text-align:center;}
+    .activity-date{color:#9b9bab;font-size:13px;font-weight:600;padding:8px 0 4px;}
+    .activity-item{display:flex;align-items:center;gap:12px;padding:12px;background:#2a2a2a;border-radius:14px;margin-bottom:8px;cursor:pointer;}
+    .act-icon-wrap{position:relative;flex-shrink:0;}
+    .act-tok-logo{width:40px;height:40px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .act-tok-logo img{width:40px;height:40px;object-fit:cover;}
+    .act-direction{position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;}
+    .act-direction.sent{background:#e5484d;}
+    .act-direction.received{background:#30a46c;}
+    .act-info{flex:1;}
+    .act-type{color:#fff;font-size:14px;font-weight:600;}
+    .act-addr{color:#9b9bab;font-size:12px;margin-top:1px;}
+    .act-amount-pos{color:#30a46c;font-size:14px;font-weight:600;}
+    .act-amount-neg{color:#fff;font-size:14px;font-weight:600;}
+    .memecoin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;}
+    .memecoin-chip{padding:10px 8px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:12px;color:#fff;font-size:12px;font-weight:500;cursor:pointer;text-align:center;}
+    .memecoin-chip:active{border-color:#ab9ff2;}
+    .license-card{background:#2a2a2a;border-radius:16px;padding:24px;text-align:center;margin-bottom:16px;}
+    .lic-plan{color:#ab9ff2;font-size:17px;font-weight:600;margin-bottom:8px;}
+    .lic-days{color:#fff;font-size:36px;font-weight:700;margin-bottom:6px;}
+    .lic-expires{color:#9b9bab;font-size:12px;margin-bottom:8px;}
+    .lic-status{font-size:13px;font-weight:500;}
+    .coin-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #2a2a2a;}
+    .coin-row-left{display:flex;align-items:center;gap:10px;}
+    .coin-check{width:18px;height:18px;accent-color:#ab9ff2;}
+    .coin-label{color:#fff;font-size:14px;}
+    .range-inputs{display:flex;gap:6px;align-items:center;}
+    .range-input{width:65px;padding:6px 8px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:13px;text-align:center;outline:none;}
+    .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;}
+    .mode-chip{padding:10px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:10px;color:#9b9bab;font-size:13px;cursor:pointer;text-align:center;transition:all 0.15s;}
+    .mode-chip.active{background:#2d2040;border-color:#ab9ff2;color:#ab9ff2;}
+    .interval-row{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+    .interval-row span{color:#9b9bab;font-size:14px;}
+    .interval-row input{flex:1;padding:10px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:14px;outline:none;}
+    .interval-row select{padding:10px;background:#2a2a2a;border:1px solid #3a3a3a;border-radius:8px;color:#fff;font-size:13px;outline:none;}
+    .stop-btn{width:100%;padding:14px;background:#e5484d;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:8px;}
+    .notif-permission-row{display:flex;align-items:center;justify-content:space-between;background:#2a2a2a;border-radius:12px;padding:12px 14px;margin-bottom:4px;}
+    .notif-permission-row span:first-child{color:#9b9bab;font-size:14px;}
+    .perm-badge{border:1px solid #30a46c;color:#30a46c;padding:5px 16px;border-radius:8px;font-size:13px;cursor:pointer;}
+    .detail-screen{display:none;position:fixed;top:0;left:50%;transform:translateX(-50%) translateX(100%);width:100%;max-width:390px;height:100vh;background:#111;z-index:200;flex-direction:column;transition:transform 0.35s cubic-bezier(0.32,0.72,0,1);overflow-y:auto;}
+    .detail-screen.open{display:flex;transform:translateX(-50%) translateX(0);}
+    .detail-header{display:flex;align-items:center;justify-content:space-between;padding:16px;}
+    .back-btn{background:none;border:none;color:#ab9ff2;cursor:pointer;font-size:15px;display:flex;align-items:center;gap:4px;}
+    .detail-tok-info{display:flex;align-items:center;gap:8px;}
+    .detail-logo{width:32px;height:32px;border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+    .detail-logo img{width:32px;height:32px;object-fit:cover;}
+    .detail-tok-name{color:#fff;font-size:16px;font-weight:600;}
+    .detail-people{color:#30a46c;font-size:11px;}
+    .detail-follow{background:#2a2a2a;border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;}
+    .detail-body{padding:0 16px 100px;}
+    .detail-price{font-size:32px;font-weight:700;color:#fff;margin-bottom:4px;}
+    .detail-change-row{display:flex;align-items:center;gap:8px;margin-bottom:16px;}
+    .chart-wrap{background:#1a1a1a;border-radius:16px;overflow:hidden;margin-bottom:12px;position:relative;height:200px;}
+    .chart-hover-price{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.7);color:#fff;font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;pointer-events:none;display:none;white-space:nowrap;}
+    .chart-cursor{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.3);pointer-events:none;display:none;}
+    .chart-wrap canvas{position:absolute;top:0;left:0;width:100%!important;}
+    .chart-timeframes{display:flex;gap:4px;margin-bottom:16px;}
+    .tf-btn{flex:1;padding:6px 0;background:none;border:none;color:#9b9bab;font-size:12px;font-weight:500;cursor:pointer;border-radius:8px;transition:all 0.15s;}
+    .tf-btn.active{background:#2a2a2a;color:#fff;}
+    .detail-action-row{display:flex;gap:12px;margin-bottom:20px;justify-content:center;}
+    .detail-action-row::-webkit-scrollbar{height:0;}
+    .detail-act{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;}
+.detail-act-icon{width:100%;height:52px;background:#2a2a2a;border-radius:16px;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;transition:all 0.15s;}
+.detail-act-icon:active{transform:scale(0.95);background:#333;}
+.detail-act-label{color:#9b9bab;font-size:11px;font-weight:500;}
+    .position-box{background:#232323;border:1px solid #2e2e2e;border-radius:16px;padding:16px;margin-bottom:16px;}
+    .position-title{color:#9b9bab;font-size:12px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px;}
+    .position-row{display:flex;justify-content:space-between;margin-bottom:8px;}
+    .position-label{color:#9b9bab;font-size:13px;}
+    .position-value{color:#fff;font-size:13px;font-weight:600;}
+    .position-value.green{color:#30a46c;}
+    .buy-sell-row{display:flex;gap:10px;margin-bottom:16px;}
+.buy-btn{flex:1;padding:16px;background:#ab9ff2;color:#000;border:none;border-radius:100px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.15s;}
+.sell-btn{flex:1;padding:16px;background:#2a2a2a;color:#fff;border:none;border-radius:100px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity 0.15s;}
+.buy-btn:active,.sell-btn:active{opacity:0.8;}
+    .detail-section-title{color:#9b9bab;font-size:12px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px;}
+    .detail-tx{padding:12px;background:#2a2a2a;border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+    .detail-tx-left .type{color:#fff;font-size:14px;font-weight:500;}
+    .detail-tx-left .time{color:#9b9bab;font-size:12px;margin-top:2px;}
+    @keyframes ptr-spin{0%{transform:translateX(-50%) rotate(0deg)}100%{transform:translateX(-50%) rotate(360deg)}}
+  </style>
+  <script src="app.js"></script>
+</head>
+<body>
+<div class="root">
+<div id="ptr-spinner" style="display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:999;width:28px;height:28px;border:3px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:ptr-spin 0.6s linear infinite;"></div>
+  <div class="header">
+    <div class="header-left">
+      <button class="star-btn" onclick="openSettings()">⭐</button>
+      <div class="wallet-info">
+        <div class="wallet-handle" id="username-small">@itzfb1</div>
+        <div class="wallet-name" id="username-display">ItzFB1
+          <svg fill="none" viewBox="0 0 24 24" width="14px" height="14px"><path stroke="currentColor" stroke-width="2" d="M19 9h-7a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3h7a3 3 0 0 0 3-3v-7a3 3 0 0 0-3-3Z"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M15 5a3 3 0 0 0-3-3H5a3 3 0 0 0-3 3v7a3 3 0 0 0 3 3"></path></svg>
+        </div>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn" onclick="openTx()">
+        <svg fill="none" viewBox="0 0 24 24" width="18px" height="18px"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 6v6l4 2"/></svg>
+      </button>
+      <button class="icon-btn" onclick="openNotif()">
+        <svg fill="none" viewBox="0 0 24 24" width="18px" height="18px"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="balance-section">
+    <div class="balance-amount" id="value">$0.00</div>
+    <div class="balance-change-row">
+      <span class="change-positive" id="change">+$0.00</span>
+      <span class="change-badge badge-positive" id="pct">+0.00%</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="act-btn" onclick="openSend()">
+      <div class="act-icon"><svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 14 1.086 3.802c.831 2.909 4.958 2.898 5.774-.015L20.04 6.424c.42-1.502-.963-2.886-2.465-2.465L6.213 7.14c-2.913.816-2.924 4.943-.015 5.774zm0 0 3-3"></path></svg></div>
+      <span class="act-label">Send</span>
+    </button>
+    <button class="act-btn" onclick="swap()">
+      <div class="act-icon"><svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 14-4 4m0 0 4 4m-4-4h11a4 4 0 0 0 4-4m-5-4 4-4m0 0-4-4m4 4H8a4 4 0 0 0-4 4"></path></svg></div>
+      <span class="act-label">Swap</span>
+    </button>
+    <button class="act-btn" onclick="openReceive()">
+      <div class="act-icon"><svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><path fill="#fff" fill-rule="evenodd" d="M5.5 6.1a.6.6 0 0 1 .6-.6h.8a.6.6 0 0 1 .6.6v.8a.6.6 0 0 1-.6.6h-.8a.6.6 0 0 1-.6-.6zM5.5 17.1a.6.6 0 0 1 .6-.6h.8a.6.6 0 0 1 .6.6v.8a.6.6 0 0 1-.6.6h-.8a.6.6 0 0 1-.6-.6zM16.5 6.1a.6.6 0 0 1 .6-.6h.8a.6.6 0 0 1 .6.6v.8a.6.6 0 0 1-.6.6h-.8a.6.6 0 0 1-.6-.6z" clip-rule="evenodd"></path><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 16a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM14 5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2z"></path><path fill="#fff" d="M13 14a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1zM13 20a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1zM19 20a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1zM19 14a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1zM16 17a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1z"></path></svg></div>
+      <span class="act-label">Receive</span>
+    </button>
+    <button class="act-btn" onclick="openSettings()">
+      <div class="act-icon"><svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 1v22m5-18H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"></path></svg></div>
+      <span class="act-label">Buy</span>
+    </button>
+  </div>
+
+  <div class="cash-box">
+    <div>
+      <div class="cash-title">Cash Balance</div>
+      <div class="cash-amount" id="cash-display">$0.00</div>
+    </div>
+    <button class="add-cash-btn" onclick="openSettings()">Add Cash</button>
+  </div>
+
+  <div class="tokens-header">
+    <div class="tokens-title">Tokens <svg fill="none" viewBox="0 0 24 24" width="16px" height="16px"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M9 18l6-6-6-6"/></svg></div>
+  </div>
+  <div class="token-list" id="tokens"></div>
+
+  <div class="bottom-nav">
+    <button class="nav-item active">
+      <svg fill="none" viewBox="0 0 24 24" width="24px" height="24px"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M3 12L12 3L21 12V20C21 20.5523 20.5523 21 20 21H15V16H9V21H4C3.44772 21 3 20.5523 3 20V12Z"/></svg>
+    </button>
+    <button class="nav-item" onclick="openSettings()">
+      <svg fill="none" viewBox="0 0 24 24" width="24px" height="24px"><rect stroke="currentColor" stroke-width="2" x="2" y="4" width="20" height="16" rx="3"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M2 9h20M6 14h4"/></svg>
+    </button>
+    <button class="nav-item" onclick="swap()">
+      <svg fill="none" viewBox="0 0 24 24" width="24px" height="24px"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 14-4 4m0 0 4 4m-4-4h11a4 4 0 0 0 4-4m-5-4 4-4m0 0-4-4m4 4H8a4 4 0 0 0-4 4"></path></svg>
+    </button>
+    <button class="nav-item" onclick="openTx()">
+      <svg fill="none" viewBox="0 0 24 24" width="24px" height="24px"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+    </button>
+    <button class="nav-item" onclick="openNotif()">
+      <svg fill="none" viewBox="0 0 24 24" width="24px" height="24px"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- DETAIL SCREEN -->
+<div class="detail-screen" id="detailScreen">
+  <div class="detail-header">
+    <button class="back-btn" onclick="closeDetail()">
+      <svg fill="none" viewBox="0 0 24 24" width="20px" height="20px"><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M19 12H5M5 12l7-7M5 12l7 7"/></svg>
+      Back
+    </button>
+    <div class="detail-tok-info">
+      <div class="detail-logo" id="detail-logo"></div>
+      <div>
+        <div class="detail-tok-name" id="detail-name"></div>
+        <div class="detail-people" id="detail-people">● 0 people here</div>
+      </div>
+    </div>
+    <button class="detail-follow">Follow</button>
+  </div>
+  <div class="detail-body">
+    <div class="detail-price" id="detail-price">$0.00</div>
+    <div class="detail-change-row">
+      <span class="change-positive" id="detail-change-val">+$0.00</span>
+      <span class="change-badge badge-positive" id="detail-change-pct">+0.00%</span>
+    </div>
+   <div class="chart-wrap" id="chartWrap">
+      <canvas id="priceChart" width="328" height="200"></canvas>
+      <div class="chart-hover-price" id="chartHoverPrice">$0.00</div>
+      <div class="chart-cursor" id="chartCursor"></div>
+    </div>
+    <div class="chart-timeframes">
+      <button class="tf-btn" onclick="setTf(this,'1H')">1H</button>
+      <button class="tf-btn active" onclick="setTf(this,'1D')">1D</button>
+      <button class="tf-btn" onclick="setTf(this,'1W')">1W</button>
+      <button class="tf-btn" onclick="setTf(this,'1M')">1M</button>
+      <button class="tf-btn" onclick="setTf(this,'YTD')">YTD</button>
+      <button class="tf-btn" onclick="setTf(this,'ALL')">ALL</button>
+    </div>
+    <div class="detail-action-row">
+      <div class="detail-act">
+        <button class="detail-act-icon" onclick="closeDetail();openSend()">
+          <svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m10 14 1.086 3.802c.831 2.909 4.958 2.898 5.774-.015L20.04 6.424c.42-1.502-.963-2.886-2.465-2.465L6.213 7.14c-2.913.816-2.924 4.943-.015 5.774zm0 0 3-3"></path></svg>
+        </button>
+        <span class="detail-act-label">Send</span>
+      </div>
+      <div class="detail-act">
+        <button class="detail-act-icon">
+          <svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M23 6l-9.5 9.5-5-5L1 18"/><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 6h6v6"/></svg>
+        </button>
+        <span class="detail-act-label">Long</span>
+      </div>
+      <div class="detail-act">
+        <button class="detail-act-icon">
+          <svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M23 18l-9.5-9.5-5 5L1 6"/><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 18h6v-6"/></svg>
+        </button>
+        <span class="detail-act-label">Short</span>
+      </div>
+      <div class="detail-act">
+        <button class="detail-act-icon" onclick="closeDetail();openReceive()">
+          <svg fill="none" viewBox="0 0 24 24" width="22px" height="22px"><circle cx="12" cy="12" r="1" fill="#fff"/><circle cx="19" cy="12" r="1" fill="#fff"/><circle cx="5" cy="12" r="1" fill="#fff"/></svg>
+        </button>
+        <span class="detail-act-label">More</span>
+      </div>
+    </div>
+    <div class="position-box">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="color:#9b9bab;font-size:11px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:12px;">Position</div>
+          <div style="color:#9b9bab;font-size:12px;margin-bottom:6px;">Balance</div>
+          <div style="color:#fff;font-size:14px;font-weight:600;margin-bottom:12px;" id="detail-balance">0.0000</div>
+          <div style="color:#9b9bab;font-size:12px;margin-bottom:4px;">24h Return</div>
+          <div style="font-size:14px;font-weight:600;" id="detail-return">+$0.00</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="color:#9b9bab;font-size:12px;margin-bottom:6px;margin-top:23px;">Value</div>
+          <div style="color:#fff;font-size:18px;font-weight:700;" id="detail-value">$0.00</div>
+        </div>
+      </div>
+    </div>
+    <div class="buy-sell-row">
+      <button class="buy-btn" onclick="closeDetail();openReceive()">Buy</button>
+      <button class="sell-btn" onclick="closeDetail();openSend()">Sell</button>
+    </div>
+    <div class="detail-section-title">Recent Activity</div>
+    <div id="detail-tx-list"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"></div>
+
+<!-- SETTINGS SHEET -->
+<div class="sheet" id="settingsSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Settings <button class="sheet-x" onclick="closeAll()">×</button></div>
+
+  <div class="settings-section-title">PROFILE</div>
+  <div class="settings-row" style="justify-content:space-between;">
+    <span class="settings-row-label">Emoji</span>
+    <button style="font-size:26px;background:#1a1a1a;border:none;border-radius:10px;padding:4px 10px;cursor:pointer;" id="emoji-display" onclick="changeEmoji()">😭</button>
+  </div>
+  <div class="settings-row">
+    <span class="settings-row-label">@</span>
+    <input class="settings-row-input" id="set-username" placeholder="username"/>
+  </div>
+  <div class="settings-row">
+    <span class="settings-row-label">Name</span>
+    <input class="settings-row-input" id="set-name" placeholder="Wallet name"/>
+  </div>
+
+  <div class="settings-section-title">CURRENCY</div>
+  <div class="settings-row" style="justify-content:space-between;">
+    <span class="settings-row-label">Display</span>
+    <span style="color:#fff;font-size:14px;">$ USD &nbsp;▾</span>
+  </div>
+
+  <div class="settings-section-title">CASH BALANCE</div>
+  <div class="settings-row">
+    <span class="settings-row-label">Amount</span>
+    <input class="settings-row-input" type="number" id="set-cash" placeholder="0"/>
+  </div>
+  <div class="settings-row" style="justify-content:space-between;align-items:center;">
+    <span class="settings-row-label">Show</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="toggle-wrap" onclick="toggleCashShow()">
+        <div class="toggle-track" id="cash-toggle-track">
+          <div class="toggle-thumb"></div>
+        </div>
+      </div>
+      <span style="color:#9b9bab;font-size:13px;" id="cash-show-label">Hidden</span>
+    </div>
+  </div>
+
+  <div class="settings-section-title">TOTAL BALANCE</div>
+  <div class="settings-row">
+    <span class="settings-row-label">Custom $</span>
+    <input class="settings-row-input" type="number" id="set-balance" placeholder="Leave empty for real"/>
+  </div>
+
+  <div id="token-amount-list"></div>
+
+  <div class="settings-section-title">AUTO BALANCE ON REFRESH</div>
+  <div class="auto-balance-row">
+    <label>SOL +</label>
+    <input type="number" id="auto-sol" placeholder="0" value="0"/>
+  </div>
+  <div class="auto-balance-row">
+    <label>Every</label>
+    <input type="number" id="auto-every" placeholder="3" value="3"/>
+    <label style="margin-left:4px;color:#9b9bab;font-size:12px;">refresh(es)</label>
+  </div>
+  <div class="progress-row">
+    <span class="progress-label">Progress</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="progress-val" id="auto-progress">0 / 3</span>
+      <button class="refresh-btn" onclick="triggerAutoBalance()">refresh</button>
+    </div>
+  </div>
+  <button class="reset-btn" onclick="resetAutoBalance()">Reset Counter & Clear</button>
+
+  <div class="settings-section-title">CUSTOM TOKENS (SOLANA)</div>
+  <input class="sheet-input" id="custom-contract" placeholder="+ Add Token by Contract Address"/>
+  <button class="sheet-btn secondary" onclick="addByContract()">Add by Contract</button>
+
+  <div class="settings-section-title">TRENDING MEMECOINS</div>
+  <div class="memecoin-grid" id="memecoin-grid"></div>
+
+  <div class="settings-section-title">ADD CUSTOM TOKEN</div>
+  <input class="sheet-input" id="custom-symbol" placeholder="Symbol (e.g. PEPE)"/>
+  <input class="sheet-input" type="number" id="custom-amount" placeholder="Amount"/>
+  <button class="sheet-btn secondary" onclick="addCustomToken()">Add Token</button>
+
+  <button class="sheet-btn" onclick="applySettings()" style="margin-top:16px;">Save</button>
+  <button class="sheet-btn red" onclick="logout()" style="margin-top:8px;">Logout</button>
+</div>
+
+<!-- SEND SHEET -->
+<div class="sheet" id="sendSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Send <button class="sheet-x" onclick="closeAll()">×</button></div>
+  <div class="sheet-label">Select Token</div>
+  <div class="search-wrap">
+    <svg class="search-icon" fill="none" viewBox="0 0 24 24" width="16px" height="16px"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+    <input class="sheet-input" style="padding-left:36px;" placeholder="Search..." oninput="filterSendTokens(this.value)" id="send-search"/>
+  </div>
+  <div class="token-search-list" id="send-token-list"></div>
+  <div id="send-amount-section" style="display:none;">
+    <div class="sheet-label">Amount</div>
+    <input class="sheet-input" type="number" id="send-amount" placeholder="0.00"/>
+    <div class="bal-hint" id="send-balance"></div>
+    <button class="sheet-btn" onclick="confirmSend()">Send</button>
+  </div>
+  <button class="sheet-btn secondary" onclick="closeAll()">Cancel</button>
+</div>
+
+<!-- RECEIVE SHEET -->
+<div class="sheet" id="receiveSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title" id="receive-title">Receive <button class="sheet-x" onclick="closeAll()">×</button></div>
+  <div class="qr-wrap">
+    <div class="qr-box"><canvas id="qrCanvas" width="200" height="200"></canvas></div>
+    <div class="qr-addr">
+      <span id="qr-addr-short">FPjXjm...ETGGLt</span>
+      <button class="copy-btn-small" onclick="copyAddr()">
+        <svg fill="none" viewBox="0 0 24 24" width="14px" height="14px"><rect stroke="currentColor" stroke-width="2" x="9" y="9" width="13" height="13" rx="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        Copy
+      </button>
+    </div>
+    <div class="qr-note">Use this address to receive tokens only.</div>
+  </div>
+  <div class="sheet-label">Select Token</div>
+  <div class="search-wrap">
+    <svg class="search-icon" fill="none" viewBox="0 0 24 24" width="16px" height="16px"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
+    <input class="sheet-input" style="padding-left:36px;" placeholder="Search token..." oninput="filterReceiveTokens(this.value)" id="receive-search"/>
+  </div>
+  <div class="token-search-list" id="receive-token-list"></div>
+  <div id="receive-amount-section" style="display:none;">
+    <div class="sheet-label">Amount</div>
+    <input class="sheet-input" type="number" id="receive-amount" placeholder="0.00"/>
+    <button class="sheet-btn" onclick="confirmReceive()">Confirm Receive</button>
+  </div>
+  <button class="sheet-btn secondary" onclick="closeAll()">Close</button>
+</div>
+
+<!-- ACTIVITY SHEET -->
+<div class="sheet" id="txSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Recent Activity <button class="sheet-x" onclick="closeAll()">×</button></div>
+  <div class="sheet-label">Add Transaction</div>
+  <select class="sheet-select" id="tx-type">
+    <option value="Sent">Sent</option>
+    <option value="Received">Received</option>
+    <option value="Swapped">Swapped</option>
+  </select>
+  <input class="sheet-input" id="tx-symbol" placeholder="Token (e.g. SOL)"/>
+  <input class="sheet-input" id="tx-to" placeholder="To/From address (e.g. 429S...2qaL)"/>
+  <input class="sheet-input" type="number" id="tx-amount" placeholder="Amount"/>
+  <input class="sheet-input" type="datetime-local" id="tx-date"/>
+  <button class="sheet-btn" onclick="addCustomTx()">Add Transaction</button>
+  <div class="sheet-label">History</div>
+  <div id="tx-list"></div>
+  <button class="sheet-btn secondary" onclick="closeAll()">Close</button>
+</div>
+
+<!-- NOTIF SHEET -->
+<div class="sheet" id="notifSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">Notification Creator <button class="sheet-x" onclick="closeAll()">×</button></div>
+  <div class="sheet-label">Permission</div>
+  <div class="notif-permission-row">
+    <span>Push</span>
+    <span class="perm-badge" id="notif-permission" onclick="requestNotifPermission()">Enabled ✓</span>
+  </div>
+  <div class="sheet-label">Coins & Amounts</div>
+  <div id="coin-rows"></div>
+  <div class="sheet-label">Mode</div>
+  <div class="mode-grid">
+    <div class="mode-chip" id="mode-manual" onclick="setMode('manual')">Manual</div>
+    <div class="mode-chip active" id="mode-auto" onclick="setMode('auto')">Auto</div>
+    <div class="mode-chip" id="mode-random" onclick="setMode('random')">Random</div>
+    <div class="mode-chip active" id="mode-fixed" onclick="setMode('fixed')">Fixed</div>
+  </div>
+  <div class="interval-row">
+    <span>Every</span>
+    <input type="number" id="notif-interval" value="5" min="1"/>
+    <select id="notif-unit">
+      <option value="1">sec</option>
+      <option value="60">min</option>
+      <option value="3600">hr</option>
+    </select>
+  </div>
+  <button class="sheet-btn" onclick="startAutoNotif()" id="start-notif-btn">▶ Start Auto</button>
+  <button class="stop-btn" onclick="stopAutoNotif()" id="stop-notif-btn" style="display:none">Stop Auto</button>
+  <button class="sheet-btn secondary" onclick="closeAll()">Close</button>
+</div>
+
+<!-- LICENSE SHEET -->
+<div class="sheet" id="licenseSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-title">License <button class="sheet-x" onclick="closeAll()">×</button></div>
+  <div class="license-card">
+    <div class="lic-plan" id="lic-plan">Loading...</div>
+    <div class="lic-days" id="lic-days">--</div>
+    <div class="lic-expires" id="lic-expires"></div>
+    <div class="lic-status" id="lic-status"></div>
+  </div>
+  <button class="sheet-btn secondary" onclick="closeAll()">Close</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

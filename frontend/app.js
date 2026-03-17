@@ -1,4 +1,4 @@
-const API = "https://your-app.vercel.app"
+const API = "https://simwallet.vercel.app"
 
 let key = ""
 let tokens = []

@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "backend/server.js", "use": "@vercel/node" },
+    { "src": "frontend/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/login", "dest": "backend/server.js" },
+    { "src": "/update", "dest": "backend/server.js" },
+    { "src": "/admin/keys", "dest": "backend/server.js" },
+    { "src": "/admin/delete", "dest": "backend/server.js" },
+    { "src": "/(.*)", "dest": "frontend/$1" }
+  ]
+}

@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
@@ -6,7 +8,7 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-mongoose.connect("mongodb://admin:allah143%40@ac-dcufttu-shard-00-00.jbl0pfi.mongodb.net:27017,ac-dcufttu-shard-00-01.jbl0pfi.mongodb.net:27017,ac-dcufttu-shard-00-02.jbl0pfi.mongodb.net:27017/simwallet?ssl=true&replicaSet=atlas-kkwhio-shard-0&authSource=admin&appName=Cluster0")
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.log("DB Error:", err))
 
@@ -76,23 +78,23 @@ app.post("/update", async (req, res) => {
 
 app.post("/admin/keys", async (req, res) => {
   const { secret } = req.body
-  if (secret !== "ITZFB1ADMIN") return res.json({ success: false, message: "Wrong secret" })
-  
+  if (secret !== process.env.ADMIN_SECRET) return res.json({ success: false, message: "Wrong secret" })
+
   const keys = await Key.find()
   const users = await User.find()
-  
+
   const result = keys.map(k => {
     const user = users.find(u => u.key === k.key)
     let status = "active"
     let expiryDate = null
-    
+
     if (k.plan !== "lifetime") {
       const expiry = new Date(k.createdAt)
       expiry.setDate(expiry.getDate() + k.days)
       expiryDate = expiry
       if (new Date() > expiry) status = "expired"
     }
-    
+
     return {
       key: k.key,
       plan: k.plan,
@@ -103,14 +105,16 @@ app.post("/admin/keys", async (req, res) => {
       username: user?.username || "Never logged in"
     }
   })
-  
+
   res.json({ success: true, keys: result })
 })
+
 app.post("/admin/delete", async (req, res) => {
   const { secret, key } = req.body
-  if (secret !== "ITZFB1ADMIN") return res.json({ success: false, message: "Wrong secret" })
+  if (secret !== process.env.ADMIN_SECRET) return res.json({ success: false, message: "Wrong secret" })
   await Key.deleteOne({ key })
   await User.deleteOne({ key })
   res.json({ success: true })
 })
-app.listen(3000, () => console.log("Server running on port 3000"))
+
+module.exports = app

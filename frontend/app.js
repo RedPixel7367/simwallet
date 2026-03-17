@@ -1,3 +1,5 @@
+const API = "https://your-app.vercel.app"
+
 let key = ""
 let tokens = []
 let transactions = []
@@ -333,7 +335,7 @@ async function login() {
   key=document.getElementById("key").value
   if(!key) return
   try {
-    const res=await fetch("http://localhost:3000/login",{
+    const res=await fetch(API+"/login",{
       method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify({key})
     })
@@ -736,7 +738,7 @@ function saveAndRender() {
 
 async function syncToServer() {
   try {
-    await fetch("http://localhost:3000/update", {
+    await fetch(API+"/update", {
       method: "POST",
       headers: {"Content-Type":"application/json"},
       body: JSON.stringify({

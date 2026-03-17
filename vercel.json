@@ -9,6 +9,12 @@
     { "src": "/update", "dest": "backend/server.js" },
     { "src": "/admin/keys", "dest": "backend/server.js" },
     { "src": "/admin/delete", "dest": "backend/server.js" },
-    { "src": "/(.*)", "dest": "frontend/$1" }
+    { "src": "/", "dest": "frontend/login.html" },
+    { "src": "/dashboard", "dest": "frontend/dashboard.html" },
+    { "src": "/admin", "dest": "frontend/admin.html" },
+    { "src": "/(.*\\.html)", "dest": "frontend/$1" },
+    { "src": "/(.*\\.js)", "dest": "frontend/$1" },
+    { "src": "/(.*\\.png)", "dest": "frontend/$1" },
+    { "src": "/(.*\\.json)", "dest": "frontend/$1" }
   ]
 }
